@@ -1,0 +1,142 @@
+[
+  {
+    "type": "choice",
+    "topic": "diet",
+    "content": "What did the Tyrannosaurus Rex eat?",
+    "options": ["A. Plants", "B. Insects", "C. Meat", "D. Fish"],
+    "answer": "C"
+  },
+  {
+    "type": "tf",
+    "topic": "era",
+    "content": "The Stegosaurus lived during the Cretaceous period.",
+    "options": [],
+    "answer": "false"
+  },
+  {
+    "type": "text",
+    "topic": "name",
+    "content": "What is the name of the largest known carnivorous dinosaur?",
+    "options": [],
+    "answer": "spinosaurus"
+  },
+  {
+    "type": "choice",
+    "topic": "size",
+    "content": "Which of these dinosaurs was the largest?",
+    "options": ["A. Velociraptor", "B. Brachiosaurus", "C. Triceratops", "D. Stegosaurus"],
+    "answer": "B"
+  },
+  {
+    "type": "tf",
+    "topic": "diet",
+    "content": "The Triceratops was a herbivore.",
+    "options": [],
+    "answer": "true"
+  },
+  {
+    "type": "choice",
+    "topic": "speed",
+    "content": "Which dinosaur was likely the fastest?",
+    "options": ["A. Velociraptor", "B. Ankylosaurus", "C. Brachiosaurus", "D. Triceratops"],
+    "answer": "A"
+  },
+  {
+    "type": "tf",
+    "topic": "name",
+    "content": "The name 'Velociraptor' means 'swift thief'.",
+    "options": [],
+    "answer": "true"
+  },
+  {
+    "type": "text",
+    "topic": "discovery",
+    "content": "Which country is known for the first major dinosaur fossil discoveries?",
+    "options": [],
+    "answer": "england"
+  },
+  {
+    "type": "choice",
+    "topic": "habitat",
+    "content": "Which of these lived in water or near water most of the time?",
+    "options": ["A. Spinosaurus", "B. Triceratops", "C. Allosaurus", "D. Pachycephalosaurus"],
+    "answer": "A"
+  },
+  {
+    "type": "tf",
+    "topic": "extinction",
+    "content": "Dinosaurs went extinct about 65 million years ago.",
+    "options": [],
+    "answer": "true"
+  },
+  {
+    "type": "text",
+    "topic": "time",
+    "content": "In which period did the T. rex live?",
+    "options": [],
+    "answer": "cretaceous"
+  },
+  {
+    "type": "choice",
+    "topic": "features",
+    "content": "Which dinosaur had a bony frill and three facial horns?",
+    "options": ["A. Ankylosaurus", "B. Triceratops", "C. Parasaurolophus", "D. Iguanodon"],
+    "answer": "B"
+  },
+  {
+    "type": "tf",
+    "topic": "movement",
+    "content": "All dinosaurs walked on two legs.",
+    "options": [],
+    "answer": "false"
+  },
+  {
+    "type": "choice",
+    "topic": "protection",
+    "content": "Which dinosaur is known for its armored body and club-like tail?",
+    "options": ["A. Allosaurus", "B. Spinosaurus", "C. Ankylosaurus", "D. Dilophosaurus"],
+    "answer": "C"
+  },
+  {
+    "type": "text",
+    "topic": "paleontology",
+    "content": "What is the name of the science that studies fossils?",
+    "options": [],
+    "answer": "paleontology"
+  },
+  {
+    "type": "choice",
+    "topic": "sound",
+    "content": "Which dinosaur had a large crest on its head possibly used for sound?",
+    "options": ["A. Pachycephalosaurus", "B. Parasaurolophus", "C. Diplodocus", "D. Ceratosaurus"],
+    "answer": "B"
+  },
+  {
+    "type": "tf",
+    "topic": "climate",
+    "content": "Dinosaurs lived in icy environments like the Arctic.",
+    "options": [],
+    "answer": "false"
+  },
+  {
+    "type": "choice",
+    "topic": "detection",
+    "content": "Which sense was most developed in the T. rex?",
+    "options": ["A. Sight", "B. Hearing", "C. Smell", "D. Balance"],
+    "answer": "C"
+  },
+  {
+    "type": "text",
+    "topic": "eggs",
+    "content": "What is the term for fossilized dinosaur droppings?",
+    "options": [],
+    "answer": "coprolite"
+  },
+  {
+    "type": "tf",
+    "topic": "evolution",
+    "content": "Birds evolved from a group of small meat-eating dinosaurs.",
+    "options": [],
+    "answer": "true"
+  }
+]
