@@ -1,5 +1,3 @@
-from distutils.command.clean import clean
-
 import requests
 import csv
 import json
