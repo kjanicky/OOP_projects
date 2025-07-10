@@ -2,19 +2,22 @@ import requests
 import csv
 import json
 import pandas as pd
+import psycopg2
+import os
+from dotenv import load_dotenv
 
-class Extract():
+class Extract:
     def __init__(self,url,resource):
         self.url = url
         self.resource = resource
 
     def fetch_data(self):
-        final_url = self.url + f"/{self.resource}"
-        response = requests.get(final_url)
+        response = requests.get(f"{self.url}/{self.resource}")
+        response.raise_for_status()
         return response.json()
 
 
-class Transform():
+class Transform:
     def __init__(self,data):
         self.data = data
 
@@ -39,26 +42,41 @@ class Transform():
                 item[new_field_name] = item.pop(old_field_name)
         return self.data
 
-class Load():
-    def __init__(self,data):
-        self.data = data
-
-    def save_to_file(self,filepath,filetype):
+class Load:
+    def save_to_file(self, data, filepath, filetype):
         if filetype == 'csv':
-            csv_headers = list(self.data[0].keys())
-            with open(filepath,'w',newline = '',encoding = 'utf-8') as csv_file:
-                writer = csv.DictWriter(csv_file,fieldnames=csv_headers)
+            with open(filepath, 'w', newline='', encoding='utf-8') as f:
+                writer = csv.DictWriter(f, fieldnames=list(data[0].keys()))
                 writer.writeheader()
-                writer.writerows(self.data)
+                writer.writerows(data)
         elif filetype == 'json':
-            with open(filepath,'w',encoding='utf-8') as file:
-                content = json.dumps(self.data)
-                file.write(content)
+            with open(filepath, 'w', encoding='utf-8') as f:
+                json.dump(data, f)
         elif filetype == 'parquet':
-            df = pd.DataFrame(self.data)
-            df.to_parquet(filepath,'fastparquet')
+            df = pd.DataFrame(data)
+            df.to_parquet(filepath, engine='fastparquet')
 
-class Pipeline():
+class DBLoader:
+    def __init__(self, dbname='Online_Posts', user='postgres', password = None, host='localhost', port=5432):
+        self.conn = psycopg2.connect(dbname=dbname, user=user, password = password, host=host, port=port)
+        self.cur = self.conn.cursor()
+
+    def insert_row(self, table_name, item):
+        keys = ', '.join(f'"{k}"' for k in item.keys())
+        placeholders = ', '.join(['%s'] * len(item))
+        values = list(item.values())
+        sql = f'INSERT INTO "{table_name}" ({keys}) VALUES ({placeholders});'
+        self.cur.execute(sql, values)
+
+    def insert_all(self, table_name, data):
+        for item in data:
+            self.insert_row(table_name, item)
+        self.conn.commit()
+        self.cur.close()
+        self.conn.close()
+        print(f" {len(data)} records inserted into '{table_name}'")
+
+class Pipeline:
     def __init__(self,url,resource,filepath=None,filetype=None,filter_value=None,filter_field=None,select_fields=None,old_names=None,new_names=None) :
         self.url = url
         self.resource = resource
@@ -70,27 +88,26 @@ class Pipeline():
         self.old_names = old_names
         self.new_names = new_names
 
-    def Run(self):
-        data = Extract(self.url, self.resource).fetch_data()
+    def Run(self,save_to_file=True, save_to_db=False, db_table=None, db_params=None):
 
-        # Drop nulls
-        clean_data = Transform(data).drop_nulls()
+        data = Extract(self.url, self.resource).fetch_data()
+        transformer = Transform(data)
 
         if self.filter_value is not None and self.filter_field is not None:
-            if any(self.filter_field in item for item in clean_data):
-                clean_data = Transform(clean_data).filter_by(self.filter_field, self.filter_value)
+            if any(self.filter_field in item for item in data):
+                data = Transform(data).filter_by(self.filter_field, self.filter_value)
             else:
                 print(f"Field '{self.filter_field}' does not exist. Filtering was not done.")
 
         if self.select_fields is not None:
-            existing_fields = set().union(*(item.keys() for item in clean_data))
+            existing_fields = set().union(*(item.keys() for item in data))
             valid_fields = [f for f in self.select_fields if f in existing_fields]
             missing_fields = [f for f in self.select_fields if f not in existing_fields]
 
             if missing_fields:
                 print(f"Some fields are missing: {missing_fields}")
             if valid_fields:
-                clean_data = Transform(clean_data).select_fields(valid_fields)
+                data = Transform(data).select_fields(valid_fields)
 
         if self.old_names is not None and self.new_names is not None:
             if not isinstance(self.old_names, list):
@@ -103,25 +120,56 @@ class Pipeline():
             else:
                 valid_pairs = [
                     (old, new) for old, new in zip(self.old_names, self.new_names)
-                    if any(old in item for item in clean_data)
+                    if any(old in item for item in data)
                 ]
-                missing = [old for old in self.old_names if not any(old in item for item in clean_data)]
+                missing = [old for old in self.old_names if not any(old in item for item in data)]
                 if missing:
                     print(f"Some fields for rename are not existing: {missing}")
                 for old, new in valid_pairs:
-                    clean_data = Transform(clean_data).rename_fields(old, new)
+                    data = Transform(data).rename_fields(old, new)
 
+        # Save to file if requested
+        if save_to_file and self.filetype is not None and self.filepath is not None:
+            Load().save_to_file(data, self.filepath, self.filetype)
 
-        if self.filetype is not None and self.filepath is not None:
-            Load(clean_data).save_to_file(self.filepath, self.filetype)
+            # Save to DB if requested
+        if save_to_db and db_table is not None:
+            db_loader = DBLoader(**(db_params or {}))# db_params is expected to be dict with keys like dbname, user, host, port
+            db_loader.insert_all(db_table, data)
 
-Pipeline('https://jsonplaceholder.typicode.com','users','C:/CODING/Python/OOP Learning/OOP_projects/ETL_module/output.csv'
-,'csv',1,'id',['id','username'],'id','ID').Run()
-#check for methods
-#data = Extract('https://jsonplaceholder.typicode.com','users').fetch_data()
-#filter_data = Transform(data).filter_by('userId',[1,2,3])
-#filter_data = Transform(data).rename_fields(['userId','id'],['User_ID','ID'])
-#filter_data =  Transform(data).select_fields(['userId','id'])
-#filter_data = Transform(data).drop_nulls()
-#Load(data).save_to_file('C:\CODING\Python\OOP Learning\OOP_projects\ETL_module\output.parquet','parquet')
-#print(filter_data)
+# run to save in a file
+Pipeline(
+    url='https://jsonplaceholder.typicode.com',
+    resource='posts',
+    filepath='output.csv',
+    filetype='csv',
+    filter_field='userId',
+    filter_value=1,
+    select_fields=['id', 'title', 'body'],
+    old_names='id',
+    new_names='post_id'
+).Run()
+# run to send records to DB in postgreAdmin
+load_dotenv()
+db_params = {
+    'dbname': os.getenv('DB_NAME'),
+    'user': os.getenv('DB_USER'),
+    'password': os.getenv('DB_PASSWORD'),
+    'host': os.getenv('DB_HOST'),
+    'port': int(os.getenv('DB_PORT', 5432)),
+}
+Pipeline(
+    url='https://jsonplaceholder.typicode.com',
+    resource='posts',
+    filter_field=None,
+    filter_value=None,
+    select_fields=None,
+    old_names='userId',
+    new_names='userid'
+).Run(
+    save_to_file=False,
+    save_to_db=True,
+    db_table='posts',
+    db_params=db_params
+)
+
