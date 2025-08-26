@@ -1,15 +1,14 @@
 import requests
 
-class API_fetcher:
+class WeatherFetcher:
     def __init__(self,url,params,type):
         self.url = url
         self.params = params
         self.type = type
 
     def fetch_data(self):
-        self.url = f"https://api.open-meteo.com/v1/{self.type}"
         try:
-            response = requests.get(self.url,params=self.params, timeout=500)
+            response = requests.get(f"{self.url}{self.type}",params=self.params, timeout=500)
             if response.status_code == 200:
                 print("Request went sucessfully")
                 return response.json()
@@ -22,10 +21,12 @@ class API_fetcher:
         except requests.exceptions.RequestException as e:
             print(f"Network error {e}")
 
-print(API_fetcher("https://api.open-meteo.com/v1/",{
+print(WeatherFetcher("https://api.open-meteo.com/v1/",{
 	"latitude": 52.52,
-	"longitude": 13.41,
-	"daily": "temperature_2m_max,temperature_2m_min,precipitation_sum",
+    "longitude": 13.41,
+    "start_date": "2025-08-20",
+    "end_date": "2025-08-24",
+    "daily": "temperature_2m_max,temperature_2m_min,precipitation_sum",
     "timezone": "Europe/Berlin"
-},"forecast").fetch_data())
+},"forecast").fetch_data()) #just a validation print
 
